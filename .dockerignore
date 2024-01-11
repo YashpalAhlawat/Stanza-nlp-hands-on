@@ -1,0 +1,13 @@
+# Ignore logs and temporary files
+logs/
+*.tmp
+*.log
+
+# Ignore the virtual environment
+.venv/
+
+# Ignore specific files
+README.md
+LICENSE
+.gitignore
+.idea

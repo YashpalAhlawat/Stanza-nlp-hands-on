@@ -1,25 +1,34 @@
 # Use an official Python runtime as a parent image
 FROM python:3.8-slim
-
-# Set environment variables for NLP pipeline and language
-ENV NLP_PIPELINE "default"
-ENV LANGUAGE "english"
-
 # Set the working directory in the container
 WORKDIR /app
+
+# Create a non-root user
+RUN useradd -ms /bin/bash myuser
+
 
 # Copy the current directory contents into the container
 COPY . /app
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+
+
+# Grant execute permissions to the script
+RUN chmod +x /app/*
+
+
+# Install any needed packages specified in requirements.txt and required packages for stanza, gevent and gunicorn
+RUN apt-get update && apt-get install -y build-essential python3-dev libev-dev \
+    && pip install --no-cache-dir -r requirements.txt \
+    && python -c "import stanza; stanza.download('en', processors='tokenize,pos,lemma')" \
+    && pip install gevent gunicorn
+
 
 # Expose the port the app runs on
-EXPOSE 5000
+EXPOSE 8080
 
-# Define environment variable for Flask
-ENV FLASK_APP=app.py
+# Switch to the non-root user
+USER myuser
 
-# Run app.py when the container launches
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Run the script when the container launches
+CMD ["sh","run_app.sh"]
 
